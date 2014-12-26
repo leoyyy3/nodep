@@ -1,4 +1,5 @@
 var express = require('express');
+var http = require('http');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -17,12 +18,14 @@ var db = require('./models/db');
 
 var app = express();
 
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views')); 
 app.set('view engine', 'ejs');
+app.set('view options',{layout:true})
 
 
-app.use(partials())
+app.use(partials());
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -30,7 +33,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 //app.use(express.cookieParser());
 app.use(session({
@@ -48,6 +51,22 @@ app.use('/test/:username',function(req,res,next){
 });
 app.use('/login',login);
 
+app.use(function(req,res,next){
+    var err = req.session.error,
+    msg = req.session.success;
+    //删除会话中原有属性
+    delete req.session.error;
+    delete req.session.success;
+    res.locals.ms = "提示1";
+    console.log(res.locals.ms);
+    res.locals.message = '';
+    if(err) {res.locals.message = '<div style="color:red">'+err+'</div>';}
+    if(success) {res.locals.message = '<div style="color:blue">'+success+'</div>';}
+    next();
+});
+
+//app.use(app.router);  
+app.use(express.static(path.join(__dirname, 'public')));
 //片段视图
 // app.use('/list',function(req,res){
 //     res.render('list',{
@@ -86,13 +105,13 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
-});
+// app.use(function(err, req, res, next) {
+//     res.status(err.status || 500);
+//     res.render('error', {
+//         message: err.message,
+//         error: {}
+//     });
+// });
 
 
 module.exports = app;
