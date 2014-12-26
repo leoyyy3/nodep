@@ -10,18 +10,13 @@ var login = require('./routes/login');
 var partials = require('express-partials');
 var util = require('util');
 var connect = require("connect");
-var MongoStore = require("connect-mongo")(connect);
-var db = require('models/db');
+var session = require('express-session');
+var MongoStore = require("connect-mongo")(session);
+var settings = require("./settings");
+var db = require('./models/db');
 
 var app = express();
 
-app.use(express.cookieParser());
-app.use(express.session({
-    secret:settings.cookieSecret,
-    store:new MongoStore({
-        host:settings.host, port:settings.port, db:settings.db
-    })
-}))
 // view engine setup
 app.set('views', path.join(__dirname, 'views')); 
 app.set('view engine', 'ejs');
@@ -36,6 +31,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+//app.use(express.cookieParser());
+app.use(session({
+    secret:settings.cookieSecret,
+    store:new MongoStore({
+        host:settings.host, port:settings.port, db:settings.db
+    })
+}))
 
 app.use('/', routes);
 app.use('/users', users);
